@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Backtest com IA</title>
+</head>
+<body>
+  <h1>📊 Backtest com IA</h1>
+  <button onclick="rodarBacktest()">🚀 Rodar Backtest (Polygon)</button>
+  <pre id="resultado"></pre>
+
+  <script>
+    async function rodarBacktest() {
+      const res = await fetch("/run-backtest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol: "XCME:FDAX2025", timeframe: "5minute" })
+      });
+
+      const data = await res.json();
+      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
