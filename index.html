@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backtest com IA e Lotes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fc;
+      margin: 0;
+    }
+    header {
+      background: #111827;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 1100px;
+      margin: auto;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .form-row > div {
+      flex: 1;
+      min-width: 200px;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 1.8rem;
+    }
+    iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 1.5rem;
+    }
+    #resultado {
+      margin-top: 2rem;
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <header>📊 Backtest com IA + Gráfico e Lotes</header>
+  <div class="container">
+    <div class="form-row">
+      <div>
+        <label for="setup">Estratégia:</label>
+        <select id="setup">
+          <option value="INVERT 50">INVERT 50</option>
+          <option value="9-50-20">9-50-20</option>
+          <option value="PC">PC</option>
+        </select>
+      </div>
+      <div>
+        <label for="data-inicial">Data Inicial:</label>
+        <input type="date" id="data-inicial">
+      </div>
+      <div>
+        <label for="data-final">Data Final:</label>
+        <input type="date" id="data-final">
+      </div>
+      <div>
+        <label for="lotes">Lotes:</label>
+        <input type="number" id="lotes" value="1" min="1">
+      </div>
+      <div>
+        <button id="rodar">🚀 Rodar Backtest</button>
+      </div>
+    </div>
+
+    <div id="resultado"></div>
+
+    <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_candles&symbol=OANDA%3AGER40EUR&interval=5&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=America%2FSao_Paulo&withdateranges=1&hidevolume=1&allow_symbol_change=1&calendar=0&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=br#%7B%7D"></iframe>
+  </div>
+
+  <script>
+    document.getElementById("rodar").addEventListener("click", async () => {
+      const lotes = parseInt(document.getElementById("lotes").value || "1");
+      document.getElementById("resultado").innerHTML = "<p>⏳ Carregando...</p>";
+
+      try {
+        const res = await fetch("/run-backtest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+
+        const json = await res.json();
+
+        if (json.error) {
+          document.getElementById("resultado").innerHTML = "<p style='color:red;'>❌ " + json.error + "</p>";
+          return;
+        }
+
+        let html = "<h3>✅ Resultado do Backtest</h3>";
+        html += "<table><tr><th>Data</th><th>Fechamento</th><th>Setup</th><th>Avaliação IA</th><th>Nota</th></tr>";
+
+        json.trades.forEach(trade => {
+          html += `<tr>
+            <td>${trade.data || trade.hora}</td>
+            <td>${trade.fechamento || trade.preco}</td>
+            <td>${trade.setup}</td>
+            <td>${trade.avaliacao_ia}</td>
+            <td>${trade.nota}</td>
+          </tr>`;
+        });
+
+        html += "</table>";
+        document.getElementById("resultado").innerHTML = html;
+
+      } catch (error) {
+        document.getElementById("resultado").innerHTML = "<p style='color:red;'>❌ Erro ao conectar com a API.</p>";
+      }
+    });
+  </script>
+</body>
+</html>
